@@ -5,7 +5,7 @@
 	"author": "Kindritskyi Max",
 	"homepage": "https://lets-cli.org",
 	"license": "MIT",
-	"version": "0.1.1",
+	"version": "0.1.0",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/lets-cli/vscode-lets"
@@ -22,7 +22,7 @@
 	],
 	"icon": "./lets.png",
 	"engines": {
-		"vscode": "^1.75.0"
+		"vscode": "^1.76.0"
 	},
 	"activationEvents": [
 		"onLanguage:yaml"
