@@ -1,0 +1,176 @@
+{
+	"name": "vscode-lets",
+	"displayName": "Lets task runner",
+	"description": "VSCode extension for lets task runner with language server support",
+	"author": "Kindritskyi Max",
+	"homepage": "https://lets-cli.org",
+	"license": "MIT",
+	"version": "0.1.1",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/lets-cli/vscode-lets"
+	},
+	"publisher": "kindritskyimax",
+	"categories": [],
+	"keywords": [
+		"lets",
+		"lets language server",
+		"yaml",
+		"task runner",
+		"cli",
+		"development"
+	],
+	"icon": "./lets.png",
+	"engines": {
+		"vscode": "^1.75.0"
+	},
+	"activationEvents": [
+		"onLanguage:yaml"
+	],
+	"main": "./out/extension",
+	"contributes": {
+		"configuration": {
+			"type": "object",
+			"title": "Lets task runner",
+			"properties": {
+				"lets.executablePath": {
+					"type": "string",
+					"default": "lets",
+					"description": "Path to the lets binary."
+				},
+				"lets.logPath": {
+					"type": "string",
+					"default": "~/.cache/lets/log/lets_ls.log",
+					"description": "Log path for the language server."
+				},
+				"lets.debug": {
+					"type": "boolean",
+					"default": false,
+					"description": "Run language server in debug mode (more logs)."
+				}
+			}
+		},
+		"commands": [
+			{
+				"command": "vscode-lets.restart",
+				"category": "Lets",
+				"title": "Restart LSP"
+			},
+			{
+				"command": "vscode-lets.showCommands",
+				"category": "Lets",
+				"title": "Show commands",
+				"icon": "$(list-tree)"
+			},
+			{
+				"command": "vscode-lets.refresh",
+				"category": "Lets",
+				"title": "Refresh commands",
+				"icon": "$(refresh)"
+			},
+			{
+				"command": "vscode-lets.runCommand",
+				"title": "Run command",
+				"category": "Lets",
+				"icon": "$(play)"
+			},
+			{
+				"command": "vscode-lets.cloneCommand",
+				"title": "Clone command with custom args",
+				"category": "Lets",
+				"icon": "$(add)"
+			}
+		],
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "vscode-lets",
+					"title": "Lets",
+					"icon": "./res/activityBarIcon.svg"
+				}
+			]
+		},
+		"views": {
+			"vscode-lets": [
+				{
+					"id": "vscode-lets.commands",
+					"name": "Commands"
+				}
+			]
+		},
+		"menus": {
+			"commandPalette": [
+				{
+					"command": "vscode-lets.runCommand",
+					"when": "false"
+				}
+			],
+			"view/title": [
+				{
+					"command": "vscode-lets.refresh",
+					"when": "view == vscode-lets.commands",
+					"group": "navigation@1"
+				}
+			],
+			"view/item/context": [
+				{
+					"command": "vscode-lets.runCommand",
+					"when": "view == vscode-lets.commands && viewItem == commandTreeItem",
+					"group": "inline@1"
+				},
+				{
+					"command": "vscode-lets.cloneCommand",
+					"when": "view == vscode-lets.commands && viewItem == commandTreeItem",
+					"group": "inline@2"
+				}
+			]
+		},
+		"colors": [
+			{
+				"id": "vscodelets.workspaceIcon",
+				"description": "Color for workspace icons in the activity bar.",
+				"defaults": {
+					"dark": "#2e85e7",
+					"light": "#2e85e7",
+					"highContrast": "#2e85e7",
+					"highContrastLight": "#2e85e7"
+				}
+			},
+			{
+				"id": "vscodelets.upToDateIcon",
+				"description": "Color for up-to-date command icons in the activity bar.",
+				"defaults": {
+					"dark": "#00AA00",
+					"light": "#00AA00",
+					"highContrast": "#00AA00",
+					"highContrastLight": "#00AA00"
+				}
+			}
+		]
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -b",
+		"watch": "tsc -b -w",
+		"lint": "eslint",
+		"test": "sh ./scripts/e2e.sh",
+		"package": "vsce package",
+		"publish": "vsce publish"
+	},
+	"dependencies": {
+		"glob": "^11.0.0",
+		"vscode-languageclient": "^9.0.1"
+	},
+	"devDependencies": {
+		"@eslint/js": "^9.13.0",
+		"@stylistic/eslint-plugin": "^2.9.0",
+		"@types/mocha": "^10.0.6",
+		"@types/node": "^20",
+		"@types/vscode": "1.76.0",
+		"@vscode/test-electron": "2.3.9",
+		"eslint": "^9.13.0",
+		"mocha": "^10.3.0",
+		"typescript": "^5.7.2",
+		"typescript-eslint": "^8.16.0"
+	}
+}
