@@ -6,6 +6,8 @@ Extension can be found [here](https://marketplace.visualstudio.com/items?itemNam
 
 ### Extension
 
+![](./docs/images/vscode-commands.png)
+
 - Separate icon in ActivityBar (left)
 - Commands view
 - Run commands from commands view
