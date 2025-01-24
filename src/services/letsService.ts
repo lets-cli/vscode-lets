@@ -39,7 +39,6 @@ export class LetsService {
     async runCommand(letsCommand: models.Command) {
 		log.info(`Running lets command: ${letsCommand.name}, args: ${letsCommand.args}`);
 
-		log.info(`Exist status ${LetsService.terminal?.exitStatus}`)
 		if (LetsService.terminal?.exitStatus !== undefined) {
 			log.info(`Terminal is already closed, disposing it`);
 			LetsService.terminal.dispose();

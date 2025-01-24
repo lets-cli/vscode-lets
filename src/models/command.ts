@@ -37,10 +37,8 @@ export const createCommand = (name: string, description: string, args: string | 
 }
 
 export const createCustomCommand = (name: string, description: string, args: string | null = null, label: string | null = null): CustomCommand => {
-	let id = hashCode(name + (args || ""));
-	log.info(`Creating custom command: ${name} ${id}`);
 	return {
-		id,
+		id: hashCode(name + (args || "")),
 		name,
 		description,
 		args,
