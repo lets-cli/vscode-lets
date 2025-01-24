@@ -1,14 +1,14 @@
-import { Command } from './command';
+import { Command, CustomCommand } from './command';
 
 export class LetsState {
 	public commands: Command[] = [];
-	public customCommands: Command[] = [];
+	public customCommands: CustomCommand[] = [];
 
-	// TODO: three ways of handle such custom commands
-	// 1. append or prepend to the existing commands
-	// 2. insert after the original command
-	// 3. separate var and section in view for custom commands
-	public addCustomCommand(command: Command) {
+	public addCustomCommand(command: CustomCommand) {
 		this.customCommands.push(command);
+	}
+
+	public removeCustomCommand(customCommand: CustomCommand) {
+		this.customCommands = this.customCommands.filter((command) => command.id !== customCommand.id);
 	}
 }

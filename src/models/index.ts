@@ -1,2 +1,2 @@
 export { LetsState } from "./state";
-export { Command, CommandsMapping } from "./command";
+export { createCommand, createCustomCommand, isCustomCommand, Command, CustomCommand, CommandsMapping } from "./command";

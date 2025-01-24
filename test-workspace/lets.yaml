@@ -1,7 +1,10 @@
 shell: bash
 
 commands:
-  publish: echo Publish
+  publish:
+    options: |
+      Usage: lets publish [-w]
+    cmd: echo Publish ${LETS_COMMAND_ARGS}
   package:
     description: Package extension into vsix archive
     cmd: echo Package

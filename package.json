@@ -79,6 +79,12 @@
 				"title": "Clone command with custom args",
 				"category": "Lets",
 				"icon": "$(add)"
+			},
+			{
+				"command": "vscode-lets.removeCustomCommand",
+				"title": "Remove custom command",
+				"category": "Lets",
+				"icon": "$(trash)"
 			}
 		],
 		"viewsContainers": {
@@ -115,13 +121,18 @@
 			"view/item/context": [
 				{
 					"command": "vscode-lets.runCommand",
-					"when": "view == vscode-lets.commands && viewItem == commandTreeItem",
+					"when": "view == vscode-lets.commands && (viewItem == commandTreeItem || viewItem == customCommandTreeItem)",
 					"group": "inline@1"
 				},
 				{
 					"command": "vscode-lets.cloneCommand",
 					"when": "view == vscode-lets.commands && viewItem == commandTreeItem",
 					"group": "inline@2"
+				},
+				{
+					"command": "vscode-lets.removeCustomCommand",
+					"when": "view == vscode-lets.commands && viewItem == customCommandTreeItem",
+					"group": "inline@3"
 				}
 			]
 		},

@@ -12,11 +12,13 @@ import {
 import * as components from "./components";
 import * as services from "./services";
 import * as models from "./models";
+import { Config } from "./config";
 import { log } from './log';
 
 const SKIP_VERSION_STATE_KEY = "skipUpdate";
 const LETS_REPO = "https://github.com/lets-cli/lets"
 
+const WORKSPACE_STORAGE_CUSTOM_COMMANDS_KEY = 'lets:customCommands';
 
 export class LetsExtension {
     public client: LanguageClient;
@@ -24,11 +26,13 @@ export class LetsExtension {
     private _activityBar: components.ActivityBar;
     private letsService: services.LetsService
     private letsState: models.LetsState
+    private config: Config
 
-    constructor() {
+    constructor(config: Config) {
         this._activityBar = new components.ActivityBar();
-        this.letsService = new services.LetsService();
+        this.letsService = new services.LetsService(config.executable);
         this.letsState = new models.LetsState();
+        this.config = config;
     }
 
     isRunning() {
@@ -38,10 +42,9 @@ export class LetsExtension {
     activate(context: ExtensionContext) {
         const outputChannel: OutputChannel = vscode.window.createOutputChannel("Lets");
 
-        const config = vscode.workspace.getConfiguration("letsLs");
-        const executablePath: string = config.get("executablePath");
-        const debug: boolean = config.get("debug");
-        const logPath: string = config.get("logPath");
+        const executablePath: string = this.config.executable;
+        const debug: boolean = this.config.debug;
+        const logPath: string = this.config.logPath;
 
         let env = null;
         if (debug) {
@@ -51,10 +54,12 @@ export class LetsExtension {
         }
         let run: Executable = {
             command: executablePath,
+            args: ["--lsp"],
             options: {
                 env
             }
         };
+        log.info(`Starting Lets Language Server with executable: ${executablePath}`);
         const serverOptions: ServerOptions = {
             run,
             debug: run,
@@ -91,8 +96,17 @@ export class LetsExtension {
         this.client.start();
 
         this.registerCommands(context, outputChannel);
+        this.loadCustomCommands(context);
         // this.checkUpdates(context, executablePath);
     }
+
+    loadCustomCommands(context: vscode.ExtensionContext) {
+        const customCommandsFromStorage: models.CustomCommand[] = context.workspaceState.get(WORKSPACE_STORAGE_CUSTOM_COMMANDS_KEY, []);
+        customCommandsFromStorage.forEach((command) => {
+            this.letsState.addCustomCommand(command);
+        });
+    }
+
     deactivate(): Promise<void> {
         return this.client.stop()
     }
@@ -104,8 +118,7 @@ export class LetsExtension {
 
     async refresh() {
         this.letsState.commands = await this.letsService.readCommands();
-        let commands = this.letsState.commands.concat(this.letsState.customCommands);
-        this._activityBar.refresh(commands);
+        this._activityBar.refresh(this.letsState.commands, this.letsState.customCommands);
     }
 
     registerCommands(context: ExtensionContext, outputChannel: OutputChannel) {
@@ -147,6 +160,8 @@ export class LetsExtension {
         context.subscriptions.push(vscode.commands.registerCommand('vscode-lets.cloneCommand', async (treeItem?: components.CommandTreeItem) => {
             log.info(`Command: vscode-lets.cloneCommand: ${treeItem?.letsCommand?.name}`);
             if (treeItem?.letsCommand) {
+                let letsCommand = treeItem.letsCommand;
+
                 let args = await vscode.window.showInputBox({
                     prompt: "Enter Command Line Arguments:",
                     placeHolder: "<arg1> <arg2> ..."
@@ -158,13 +173,13 @@ export class LetsExtension {
 
                 let customName = await vscode.window.showInputBox({
                     prompt: "Enter Custom Command Name:",
-                    value: treeItem.letsCommand.name
+                    value: letsCommand.name
                 });
                 if (customName === undefined) {
                     vscode.window.showInformationMessage('No custom name supplied');
                     return;
                 }
-                if (customName === treeItem.letsCommand.name) {
+                if (customName === letsCommand.name) {
                     vscode.window.showInformationMessage('Custom name cannot be the same as the original name');
                     return;
                 }
@@ -173,11 +188,26 @@ export class LetsExtension {
                     prompt: "Enter Custom Description (optional):",
                 });
 
-                // TODO: store custom commands, like a command with -w flag. We can save it to somewhere
+                const customCommand = models.createCustomCommand(letsCommand.name, customDescription || letsCommand.description, args, customName)
+                this.letsState.addCustomCommand(customCommand);
 
-                this.letsState.addCustomCommand(
-                    new models.Command(customName, customDescription || treeItem.letsCommand.description, args)
-                );
+                const customCommandsFromStorage: models.CustomCommand[] = context.workspaceState.get(WORKSPACE_STORAGE_CUSTOM_COMMANDS_KEY);
+                customCommandsFromStorage.push(customCommand);
+                context.workspaceState.update(WORKSPACE_STORAGE_CUSTOM_COMMANDS_KEY, customCommandsFromStorage);
+
+                this.refresh();
+            }
+        }));
+
+        context.subscriptions.push(vscode.commands.registerCommand('vscode-lets.removeCustomCommand', async (treeItem?: components.CommandTreeItem) => {
+            if (treeItem?.letsCommand && models.isCustomCommand(treeItem.letsCommand)) {
+                let letsCommand = treeItem.letsCommand;
+
+                this.letsState.removeCustomCommand(letsCommand);
+
+                const customCommandsFromStorage: models.CustomCommand[] = context.workspaceState.get(WORKSPACE_STORAGE_CUSTOM_COMMANDS_KEY);
+                context.workspaceState.update(WORKSPACE_STORAGE_CUSTOM_COMMANDS_KEY, customCommandsFromStorage.filter((command) => command.id !== letsCommand.id));
+
                 this.refresh();
             }
         }));
@@ -186,10 +216,9 @@ export class LetsExtension {
     async checkUpdates(context: ExtensionContext, executable: string): Promise<void> {
         const res = await fetch(`${LETS_REPO}/releases/latest`);
 
-        // js is perfect
         const { tag_name } = (await res.json()) as any;
 
-        //check if skipped
+        // check if skipped
         const val = context.globalState.get(SKIP_VERSION_STATE_KEY);
         if (val && val === tag_name) {
             return;

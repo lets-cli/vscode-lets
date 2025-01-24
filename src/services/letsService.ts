@@ -13,7 +13,13 @@ type ExecutionResult = {
 };
 
 export class LetsService {
+	private executable: string;
 	private static terminal: vscode.Terminal | undefined;
+
+	constructor(executable: string) {
+		this.executable = executable;
+	}
+
 	private async execute(command: string, dir?: string): Promise<ExecutionResult> {
         return await new Promise((resolve) => {
 			cp.exec(command, { cwd: dir }, (error: cp.ExecException | null, stdout: string, stderr: string) => {
@@ -24,10 +30,10 @@ export class LetsService {
 
 	private formatCommand(command: string, args: string | null): string {
 		if (args === null) {
-			return `lets ${command}`;
+			return `${this.executable} ${command}`;
 		}
 
-		return `lets ${command} ${args}`;
+		return `${this.executable} ${command} ${args}`;
 	}
 
     async runCommand(letsCommand: models.Command) {
@@ -55,6 +61,7 @@ export class LetsService {
 		const dir = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
 		const result = await this.execute(this.formatCommand("completion", "--list --verbose"), dir);
 		if (result.hasError) {
+			log.info(`Failed to read commands: ${result.stderr}`);
 			return [];
 		}
 
@@ -62,7 +69,7 @@ export class LetsService {
 		return lines
 		.map(line => {
 			const [name, description] = line.split(":");
-			return new models.Command(name, description);
+			return models.createCommand(name, description);
 		});
     }
 }

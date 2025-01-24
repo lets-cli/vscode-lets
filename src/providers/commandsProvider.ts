@@ -1,15 +1,13 @@
 import * as vscode from 'vscode';
 import * as components from '../components';
 import * as models from '../models';
-import { log } from '../log';
 
 export class CommandsProvider implements vscode.TreeDataProvider<components.TreeItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<components.CommandTreeItem | undefined> = new vscode.EventEmitter<components.CommandTreeItem | undefined>();
     readonly onDidChangeTreeData: vscode.Event<components.CommandTreeItem | undefined> = this._onDidChangeTreeData.event;
 
 	private commands: models.Command[] = [];
-    private treeViewMap: models.CommandsMapping = {};
-	private commandNames: string[] = [];
+	private customCommands: models.CustomCommand[] = [];
 
     constructor(
         private nestingEnabled: boolean = false
@@ -24,37 +22,52 @@ export class CommandsProvider implements vscode.TreeDataProvider<components.Tree
     }
 
 	getChildren(parent?: components.TreeItem): vscode.ProviderResult<components.TreeItem[]> {
-        let treeItems: components.TreeItem[] = [];
-        let taskTreeItems: components.CommandTreeItem[] = [];
-
-        this.commandNames.forEach(commandName => {
-            if (commandName in this.treeViewMap) {
-                let item = new components.CommandTreeItem(
-					commandName,
-                    this.treeViewMap[commandName],
-                    vscode.TreeItemCollapsibleState.None,
-					undefined,  // TODO: add go to definition and run
-                );
-				taskTreeItems.push(item);
-            }
-        });
-
-        treeItems = treeItems.concat(taskTreeItems);
-
-        return Promise.resolve(treeItems);
+        if (!parent && this.customCommands.length > 0) {
+            return Promise.resolve(this.getNamespaces());
+        } else if (parent instanceof components.NamespaceTreeItem) {
+            return Promise.resolve(this.getCommandsTreeItems(parent.letsCommands));
+        } else {
+            return Promise.resolve(this.getCommandsTreeItems(this.commands));
+        }
 	}
 
-    refresh(commands?: models.Command[]) {
+    getCommandsTreeItems(commands: models.Command[] | models.CustomCommand[]): components.CommandTreeItem[] {
+        return commands.map(command => {
+            return new components.CommandTreeItem(
+                command.label,
+                command,
+                vscode.TreeItemCollapsibleState.None,
+                undefined,
+            );
+        });
+    }
+
+    getNamespaces(): components.NamespaceTreeItem[] {
+        return [
+            new components.NamespaceTreeItem(
+                "Commands",
+                "",
+                this.commands,
+                vscode.TreeItemCollapsibleState.Expanded
+            ),
+            new components.NamespaceTreeItem(
+                "Custom commands",
+                "",
+                this.customCommands,
+                vscode.TreeItemCollapsibleState.Expanded
+            )
+        ];
+    }
+
+    refresh(commands?: models.Command[], customCommands?: models.CustomCommand[]) {
 		if (commands) {
 			this.commands = commands;
-			this.treeViewMap = {};
-			this.commandNames = [];
-			this.commands.forEach((command) => {
-				this.treeViewMap[command.name] = command;
-				this.commandNames.push(command.name);
-			});
-            this.commandNames.sort((a, b) => (a > b ? -1 : 1));
+            this.commands.sort((a, b) => (a.label > b.label ? -1 : 1))
 		}
+        if (customCommands) {
+            this.customCommands = customCommands;
+            this.customCommands.sort((a, b) => (a.label > b.label ? -1 : 1))
+        }
         this._onDidChangeTreeData.fire(undefined);
     }
 

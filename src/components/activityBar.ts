@@ -18,7 +18,7 @@ export class ActivityBar {
         this._provider.refresh();
     }
 
-    public refresh(commands?: models.Command[]) {
-        this._provider.refresh(commands);
+    public refresh(commands?: models.Command[], customCommands?: models.CustomCommand[]) {
+        this._provider.refresh(commands, customCommands);
     }
 }
