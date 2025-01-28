@@ -48,13 +48,12 @@ export class LetsExtension {
 
         let env = null;
         if (debug) {
-            env = {
-                RUST_LOG: "debug",
-            };
+            // TODO: add debug support
+            // env = { };
         }
         let run: Executable = {
             command: executablePath,
-            args: ["--lsp"],
+            args: ["self", "lsp"],
             options: {
                 env
             }

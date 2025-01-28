@@ -5,6 +5,7 @@ commands:
     options: |
       Usage: lets publish [-w]
     cmd: echo Publish ${LETS_COMMAND_ARGS}
+
   package:
     description: Package extension into vsix archive
     cmd: echo Package
