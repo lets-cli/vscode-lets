@@ -190,7 +190,7 @@ export class LetsExtension {
                 const customCommand = models.createCustomCommand(letsCommand.name, customDescription || letsCommand.description, args, customName)
                 this.letsState.addCustomCommand(customCommand);
 
-                const customCommandsFromStorage: models.CustomCommand[] = context.workspaceState.get(WORKSPACE_STORAGE_CUSTOM_COMMANDS_KEY);
+                const customCommandsFromStorage: models.CustomCommand[] = context.workspaceState.get(WORKSPACE_STORAGE_CUSTOM_COMMANDS_KEY, []);
                 customCommandsFromStorage.push(customCommand);
                 context.workspaceState.update(WORKSPACE_STORAGE_CUSTOM_COMMANDS_KEY, customCommandsFromStorage);
 
