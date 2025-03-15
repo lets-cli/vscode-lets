@@ -50,6 +50,16 @@
 				}
 			}
 		},
+		"grammars": [
+			{
+				"scopeName": "source.yaml.injection",
+				"path": "./syntaxes/yaml-cmd-shell.tmLanguage.json",
+				"injectTo": ["source.yaml"],
+				"embeddedLanguages": {
+					"meta.embedded.inline.shell": "shellscript"
+				}
+			}
+		],
 		"commands": [
 			{
 				"command": "vscode-lets.restart",
